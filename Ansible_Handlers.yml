@@ -1,0 +1,46 @@
+- hosts: all
+  vars:
+    - port_no: 8080
+    - doc_root: "/var/www/mydoc/"
+
+  tasks:
+  - name: Install httpd
+    package:
+      name: "httpd"
+      state: present
+
+  - name: Create document root
+    file:
+      state: directory
+      path: "{{ doc_root }}"
+
+  - name: Copy webpage
+    copy:
+      dest: "{{ doc_root }}/index.html"
+      content: "This is my Webpage!!"
+
+  - name: Copy the configuration file
+    template:
+      dest: "/etc/httpd/conf.d/khushi.conf"
+      src: "khushi.conf"
+    notify:
+    - Restart httpd
+
+  - name: Start httpd service
+    service:
+      name: "httpd"
+      state: started
+
+  - name: Stop firewall
+    firewalld:
+      port: "{{ port_no }}/tcp"
+      state: enabled
+      permanent: yes
+      immediate: yes
+
+  handlers:
+    - name: Restart httpd
+      service:
+        name: "httpd"
+        state: restarted
+
